@@ -35,3 +35,7 @@ export const BLOCKED_ADDRESSES: string[] = [
   '0xA7e5d5A720f06526557c513402f2e6B5fA20b008',
   '0x8576aCC5C05D6Ce88f4e49bf65BdF0C62F91353C'
 ]
+
+export const erc20TokenList: Record<string, { name: string; address: string }> = {
+  mUSDT: { name: 'mUSDT', address: '0xb575400Da99E13e2d1a2B21115290Ae669e361f0' }
+}

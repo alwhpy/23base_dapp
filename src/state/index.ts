@@ -8,8 +8,8 @@ import transactions from './transactions/reducer'
 import multicall from './multicall/reducer'
 import wallets from './wallet/reducer'
 import userWallet from './userWallet/reducer'
-
-const PERSISTED_KEYS: string[] = ['transactions', 'userWallet']
+import testTransactions from 'myTestState/transactions/reducer'
+const PERSISTED_KEYS: string[] = ['transactions', 'userWallet', 'testTransactions']
 
 const store = configureStore({
   reducer: {
@@ -18,10 +18,11 @@ const store = configureStore({
     wallets,
     userWallet,
     transactions,
-    multicall
+    multicall,
+    testTransactions
   },
   middleware: [...getDefaultMiddleware({ thunk: false }), save({ states: PERSISTED_KEYS })],
-  preloadedState: load({ states: PERSISTED_KEYS })
+  preloadedState: load({ states: PERSISTED_KEYS }) // 自动保存在本地
 })
 
 store.dispatch(updateVersion())

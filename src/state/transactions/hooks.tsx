@@ -8,6 +8,7 @@ import { addTransaction, UserSubmittedProp } from './actions'
 import { TransactionDetails } from './reducer'
 
 // helper that can take a ethers library transaction response and add it to the list of transactions
+// 添加写入交易到全局交易列表
 export function useTransactionAdder(): (
   response: TransactionResponse,
   customData?: {

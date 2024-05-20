@@ -14,10 +14,11 @@ import MulticallUpdater from './state/multicall/updater'
 import TransactionUpdater from './state/transactions/updater'
 import { Buffer } from 'buffer'
 import Web3Provider from 'components/Web3Provider'
-
+import TestTransactionUpdater from 'myTestState/transactions/updater'
 function Updaters() {
   return (
     <>
+      <TestTransactionUpdater />
       <ApplicationUpdater />
       <TransactionUpdater />
       <MulticallUpdater />
