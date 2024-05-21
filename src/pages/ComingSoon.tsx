@@ -1,6 +1,7 @@
 import { styled } from '@mui/material'
 import { Dots } from 'theme/components'
 import LogContract from './componenst/contract/logContract'
+import BlockNumberUpdater from 'myTestState/blockNumber'
 
 const Frame = styled('div')(`
 width: calc(100% - 40px);
@@ -32,6 +33,7 @@ export default function ComingSoon() {
       <div>This section is still implemeting.</div>
       <div>Please come back later</div>
       <LogContract />
+      <BlockNumberUpdater />
     </Frame>
   )
 }

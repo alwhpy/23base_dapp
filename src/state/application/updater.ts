@@ -10,7 +10,6 @@ import { getOtherNetworkLibrary } from 'connection/MultiNetworkConnector'
 export default function Updater(): null {
   const { library, chainId } = useActiveWeb3React()
   const dispatch = useDispatch()
-
   const windowVisible = useIsWindowVisible()
 
   const [state, setState] = useState<{ chainId: number | undefined; blockNumber: number | null }>({
@@ -34,15 +33,14 @@ export default function Updater(): null {
   // attach/detach listeners
   useEffect(() => {
     if (!library || !chainId || !windowVisible) return undefined
-
+    // 初始化设置
     setState({ chainId, blockNumber: null })
-
     library
-      .getBlockNumber()
+      .getBlockNumber() // 获取当前网络区块高度
       .then(blockNumberCallback)
       .catch(error => console.error(`Failed to get block number for chainId: ${chainId}`, error))
 
-    library.on('block', blockNumberCallback)
+    library.on('block', blockNumberCallback) // 监听区块被挖出事件
     return () => {
       library.removeListener('block', blockNumberCallback)
     }
@@ -50,11 +48,13 @@ export default function Updater(): null {
 
   const debouncedState = useDebounce(state, 100)
 
+  // 更新项目中的区块高度
   useEffect(() => {
     if (!debouncedState.chainId || !debouncedState.blockNumber || !windowVisible) return
     dispatch(updateBlockNumber({ chainId: debouncedState.chainId, blockNumber: debouncedState.blockNumber }))
   }, [windowVisible, dispatch, debouncedState.blockNumber, debouncedState.chainId])
 
+  //获取其他网络的区块高度，10 秒钟获取一次
   const providers = useMemo(() => SUPPORT_NETWORK_CHAIN_IDS.map(v => getOtherNetworkLibrary(v)), [])
   const [timeInt, setTimeInt] = useState(0)
   useEffect(() => {
