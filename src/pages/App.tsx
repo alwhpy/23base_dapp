@@ -9,6 +9,7 @@ import ComingSoon from './ComingSoon'
 import { ModalProvider } from 'context/ModalContext'
 import { routes } from 'constants/routes'
 import { ToastContainer } from 'react-toastify'
+import ConnectProvider from 'wallet/wagmiWithModal/provider'
 // import Footer from 'components/Footer'
 
 const AppWrapper = styled('div')(({ theme }) => ({
@@ -49,28 +50,30 @@ const BodyWrapper = styled('div')(({ theme }) => ({
 export default function App() {
   return (
     <Suspense fallback={null}>
-      <ModalProvider>
-        <AppWrapper id="app">
-          <ContentWrapper>
-            <Header />
-            <BodyWrapper id="body">
-              <ToastContainer />
-              <Popups />
-              <Polling />
-              {/* <WarningModal /> */}
-              <Routes>
-                <Route path={routes.test1} element={<ComingSoon />} />
-                <Route path={routes.test2} element={<ComingSoon />} />
-                <Route path={routes.test3} element={<ComingSoon />}>
-                  <Route path={routes.test3 + routes.test3Desc} element={<ComingSoon />} />
-                </Route>
-                <Route path="*" element={<Navigate to={routes.test1} replace />} />
-              </Routes>
-            </BodyWrapper>
-            {/* <Footer /> */}
-          </ContentWrapper>
-        </AppWrapper>
-      </ModalProvider>{' '}
+      <ConnectProvider>
+        <ModalProvider>
+          <AppWrapper id="app">
+            <ContentWrapper>
+              <Header />
+              <BodyWrapper id="body">
+                <ToastContainer />
+                <Popups />
+                <Polling />
+                {/* <WarningModal /> */}
+                <Routes>
+                  <Route path={routes.test1} element={<ComingSoon />} />
+                  <Route path={routes.test2} element={<ComingSoon />} />
+                  <Route path={routes.test3} element={<ComingSoon />}>
+                    <Route path={routes.test3 + routes.test3Desc} element={<ComingSoon />} />
+                  </Route>
+                  <Route path="*" element={<Navigate to={routes.test1} replace />} />
+                </Routes>
+              </BodyWrapper>
+              {/* <Footer /> */}
+            </ContentWrapper>
+          </AppWrapper>
+        </ModalProvider>{' '}
+      </ConnectProvider>
     </Suspense>
   )
 }

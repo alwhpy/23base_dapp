@@ -1,5 +1,7 @@
 import { styled } from '@mui/material'
 import { Dots } from 'theme/components'
+import WagmiProvider from 'wallet/wagmiWallet/provider'
+import TestComponent from 'wallet/wagmiWithModal/testComponent'
 
 const Frame = styled('div')(`
 width: calc(100% - 40px);
@@ -30,6 +32,8 @@ export default function ComingSoon() {
       </Title>
       <div>This section is still implemeting.</div>
       <div>Please come back later</div>
+      <WagmiProvider />
+      <TestComponent />
     </Frame>
   )
 }

@@ -2,11 +2,11 @@ import BigNumberjs from 'bignumber.js'
 import EthUrl from 'assets/svg/eth_logo.svg'
 import BSCUrl from 'assets/svg/binance.svg'
 import ZkevmSrc from 'assets/images/zkevm_logo.png'
-
+import { mainnet, sepolia, Chain } from 'wagmi/chains'
 export function numberToHex(number: number) {
   return '0x' + new BigNumberjs(number).toString(16)
 }
-
+export type ChainInfo = Chain
 export enum ChainId {
   MAINNET = 1,
   GÖRLI = 5,
@@ -448,3 +448,8 @@ export const ChainListMap: {
   acc[item.id] = item
   return acc
 }, {} as any)
+
+export const CHAIN = {
+  [ChainId.MAINNET]: mainnet,
+  [ChainId.SEPOLIA]: sepolia
+}
