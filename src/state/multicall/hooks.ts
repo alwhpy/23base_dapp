@@ -62,7 +62,7 @@ function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions, qu
       JSON.stringify(
         calls
           ?.filter((c): c is Call => Boolean(c))
-          ?.map(toCallKey)
+          ?.map(toCallKey) // 生成key: address-encodeFunctionData
           ?.sort() ?? []
       ),
     [calls]
@@ -72,7 +72,7 @@ function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions, qu
   useEffect(() => {
     const callKeys: string[] = JSON.parse(serializedCallKeys)
     if (!chainId || callKeys.length === 0) return undefined
-    const calls = callKeys.map(key => parseCallKey(key))
+    const calls = callKeys.map(key => parseCallKey(key)) // 从key中解析成 Call 类型
     dispatch(
       addMulticallListeners({
         chainId,
@@ -124,6 +124,7 @@ interface CallState {
 const INVALID_CALL_STATE: CallState = { valid: false, result: undefined, loading: false, syncing: false, error: false }
 const LOADING_CALL_STATE: CallState = { valid: true, result: undefined, loading: true, syncing: true, error: false }
 
+// 解析值
 function toCallState(
   callResult: CallResult | undefined,
   contractInterface: Interface | undefined,
@@ -132,6 +133,7 @@ function toCallState(
 ): CallState {
   if (!callResult) return INVALID_CALL_STATE
   const { valid, data, blockNumber } = callResult
+  console.log('🚀 ~ callResult:', callResult)
   if (!valid) return INVALID_CALL_STATE
   if (valid && !blockNumber) return LOADING_CALL_STATE
   if (!contractInterface || !fragment || !latestBlockNumber) return LOADING_CALL_STATE
@@ -141,6 +143,7 @@ function toCallState(
   if (success && data) {
     try {
       result = contractInterface.decodeFunctionResult(fragment, data)
+      console.log('🚀 ~ result:45616456', result)
     } catch (error) {
       console.debug('Result data parsing failed', fragment, data)
       return {
@@ -240,6 +243,7 @@ export function useSingleCallResult(
   options?: ListenerOptions,
   chainId?: ChainId
 ): CallState {
+  // 类似 方法的abi
   const fragment = useMemo(() => contract?.interface?.getFunction(methodName), [contract, methodName])
 
   const calls = useMemo<Call[]>(() => {
@@ -247,16 +251,17 @@ export function useSingleCallResult(
       ? [
           {
             address: contract.address,
-            callData: contract.interface.encodeFunctionData(fragment, inputs)
+            callData: contract.interface.encodeFunctionData(fragment, inputs) // 转成特定的字节格式, 便于被链上识别和执行
           }
         ]
       : []
   }, [contract, fragment, inputs])
-
-  const result = useCallsData(calls, options, chainId)[0]
+  console.log('🚀 ~ calls ~ calls:', calls)
+  const result = useCallsData(calls, options, chainId)[0] // 去调用值
+  console.log('🚀 ~ result:456651', result)
   const latestBlockNumber = useBlockNumber(chainId)
 
   return useMemo(() => {
-    return toCallState(result, contract?.interface, fragment, latestBlockNumber)
+    return toCallState(result, contract?.interface, fragment, latestBlockNumber) // 取解析值
   }, [result, contract, fragment, latestBlockNumber])
 }

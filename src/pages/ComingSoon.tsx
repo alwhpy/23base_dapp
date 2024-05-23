@@ -1,5 +1,6 @@
 import { styled } from '@mui/material'
 import { Dots } from 'theme/components'
+import MulticallDebug from './multicallDebug'
 
 const Frame = styled('div')(`
 width: calc(100% - 40px);
@@ -30,6 +31,7 @@ export default function ComingSoon() {
       </Title>
       <div>This section is still implemeting.</div>
       <div>Please come back later</div>
+      <MulticallDebug />
     </Frame>
   )
 }

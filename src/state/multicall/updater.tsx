@@ -32,11 +32,14 @@ async function fetchChunk(
 ): Promise<{ success: boolean; returnData: string }[]> {
   console.debug('Fetching chunk', chunk, blockNumber)
   try {
+    // returnData: 交易结果数组，但是内容经过编码
     const { returnData } = await multicall.callStatic.tryBlockAndAggregate(
+      // 执行合约
       false,
       chunk.map(obj => ({ target: obj.address, callData: obj.callData, gasLimit: obj.gasRequired ?? 1_000_000 })),
       { blockTag: blockNumber }
     )
+    console.log('🚀 ~ returnData:', returnData)
 
     if (process.env.NODE_ENV === 'development') {
       returnData.forEach(
@@ -79,6 +82,7 @@ async function fetchChunk(
  * @param allListeners the all listeners state
  * @param chainId the current chain id
  */
+//  返回还在活跃的监听器
 export function activeListeningKeys(
   allListeners: AppState['multicall']['callListeners'],
   chainId?: number
@@ -97,7 +101,7 @@ export function activeListeningKeys(
         return keyListeners[blocksPerFetch] > 0
       })
       .reduce((previousMin, current) => {
-        return Math.min(previousMin, parseInt(current))
+        return Math.min(previousMin, parseInt(current)) //返回最小的blocksPerFetch??
       }, Infinity)
     return memo
   }, {})
@@ -110,6 +114,7 @@ export function activeListeningKeys(
  * @param chainId the current chain id
  * @param latestBlockNumber the latest block number
  */
+// 需要重新去获取的任务？
 export function outdatedListeningKeys(
   callResults: AppState['multicall']['callResults'],
   listeningKeys: { [callKey: string]: number },
@@ -131,9 +136,12 @@ export function outdatedListeningKeys(
     const minDataBlockNumber = latestBlockNumber - (blocksPerFetch - 1)
 
     // already fetching it for a recent enough block, don't refetch it
+    // 有块去获取它了？
     if (data.fetchingBlockNumber && data.fetchingBlockNumber >= minDataBlockNumber) return false
 
     // if data is older than minDataBlockNumber, fetch it
+    // !data.blockNumber： 还没出结果
+    // data.blockNumber < minDataBlockNumber: 失败了
     return !data.blockNumber || data.blockNumber < minDataBlockNumber
   })
 }
@@ -142,11 +150,12 @@ function UpdaterChain({ chainId }: { chainId: ChainId }) {
   const dispatch = useDispatch<AppDispatch>()
   const state = useSelector<AppState, AppState['multicall']>(state => state.multicall)
   // wait for listeners to settle before triggering updates
-  const debouncedListeners = useDebounce(state.callListeners, 100)
-  const latestBlockNumber = useBlockNumber(chainId)
-  const multicall2Contract = useMulticallContract(chainId)
+  const debouncedListeners = useDebounce(state.callListeners, 100) // 防抖一下
+  const latestBlockNumber = useBlockNumber(chainId) // 获取当前块高
+  const multicall2Contract = useMulticallContract(chainId) // 获取multicall 合约
   const cancellations = useRef<{ blockNumber: number; cancellations: (() => void)[] }>()
 
+  // 还在监听中的任务？
   const listeningKeys: { [callKey: string]: number } = useMemo(() => {
     return activeListeningKeys(debouncedListeners, chainId)
   }, [debouncedListeners, chainId])
@@ -167,10 +176,10 @@ function UpdaterChain({ chainId }: { chainId: ChainId }) {
     if (outdatedCallKeys.length === 0) return
     const calls = outdatedCallKeys.map(key => parseCallKey(key))
 
-    const chunkedCalls = chunkArray(calls)
+    const chunkedCalls = chunkArray(calls) // 根据任务所需的gas 去分块任务
 
     if (cancellations.current && cancellations.current.blockNumber !== latestBlockNumber) {
-      cancellations.current.cancellations.forEach(c => c())
+      cancellations.current.cancellations.forEach(c => c()) // 取消交易查询, 但是条件是什么我不知道??
     }
 
     dispatch(
@@ -185,17 +194,18 @@ function UpdaterChain({ chainId }: { chainId: ChainId }) {
       blockNumber: latestBlockNumber,
       cancellations: chunkedCalls.map((chunk, index) => {
         const { cancel, promise } = retry(() => fetchChunk(multicall2Contract, chunk, latestBlockNumber), {
+          // 分块去执行任务,由 retry 统一执行
           n: Infinity,
           minWait: 1000,
           maxWait: 2500
         })
-        promise
+        promise //执行结束
           .then(returnData => {
             // accumulates the length of all previous indices
             const firstCallKeyIndex = chunkedCalls.slice(0, index).reduce<number>((memo, curr) => memo + curr.length, 0)
             const lastCallKeyIndex = firstCallKeyIndex + returnData.length
 
-            const slice = outdatedCallKeys.slice(firstCallKeyIndex, lastCallKeyIndex)
+            const slice = outdatedCallKeys.slice(firstCallKeyIndex, lastCallKeyIndex) // 完整的任务队列？
 
             // split the returned slice into errors and success
             const { erroredCalls, results } = slice.reduce<{
@@ -212,11 +222,13 @@ function UpdaterChain({ chainId }: { chainId: ChainId }) {
               },
               { erroredCalls: [], results: {} }
             )
-
+            console.log('🚀 ~ cancellations:chunkedCalls.map ~ results:', results)
             // dispatch any new results
             if (Object.keys(results).length > 0)
               dispatch(
+                // 更新成功的交易结果
                 updateMulticallResults({
+                  // 更新状态
                   chainId,
                   results,
                   blockNumber: latestBlockNumber

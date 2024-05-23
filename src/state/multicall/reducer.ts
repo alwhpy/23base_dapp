@@ -15,7 +15,7 @@ export interface MulticallState {
       // stores for each call key the listeners' preferences
       [callKey: string]: {
         // stores how many listeners there are per each blocks per fetch preference
-        [blocksPerFetch: number]: number
+        [blocksPerFetch: number]: number // 还是不太懂这个属性的作用
       }
     }
   }
@@ -43,10 +43,16 @@ export default createReducer(initialState, builder =>
         : (state.callListeners = {})
       listeners[chainId] = listeners[chainId] ?? {}
       calls.forEach(call => {
-        const callKey = toCallKey(call)
+        const callKey = toCallKey(call) // 又转成key
         listeners[chainId][callKey] = listeners[chainId][callKey] ?? {}
-        listeners[chainId][callKey][blocksPerFetch] = (listeners[chainId][callKey][blocksPerFetch] ?? 0) + 1
+        listeners[chainId][callKey][blocksPerFetch] = (listeners[chainId][callKey][blocksPerFetch] ?? 0) + 1 // 设置成2 ， blocksPerFetch 是用来干嘛的？
       })
+      console.log(
+        '🚀 ~ .addCase ~ listeners:',
+        state.callListeners[11155111][
+          '0x21C3ac8c6E5079936A59fF01639c37F36CE5ed9E-0x70a0823100000000000000000000000067ac8898203066f2fd0be7026c5c54009252a800'
+        ]
+      )
     })
     .addCase(
       removeMulticallListeners,
@@ -70,6 +76,7 @@ export default createReducer(initialState, builder =>
       }
     )
     .addCase(fetchingMulticallResults, (state, { payload: { chainId, fetchingBlockNumber, calls } }) => {
+      // 重新标记块高
       state.callResults[chainId] = state.callResults[chainId] ?? {}
       calls.forEach(call => {
         const callKey = toCallKey(call)
@@ -85,6 +92,7 @@ export default createReducer(initialState, builder =>
       })
     })
     .addCase(errorFetchingMulticallResults, (state, { payload: { fetchingBlockNumber, chainId, calls } }) => {
+      // 获取失败，进行更新，但是目的是什么我不知道？
       state.callResults[chainId] = state.callResults[chainId] ?? {}
       calls.forEach(call => {
         const callKey = toCallKey(call)
@@ -98,10 +106,11 @@ export default createReducer(initialState, builder =>
       })
     })
     .addCase(updateMulticallResults, (state, { payload: { chainId, results, blockNumber } }) => {
+      // 交易成功后，将交易结果data更新上去
       state.callResults[chainId] = state.callResults[chainId] ?? {}
       Object.keys(results).forEach(callKey => {
         const current = state.callResults[chainId][callKey]
-        if ((current?.blockNumber ?? 0) > blockNumber) return
+        if ((current?.blockNumber ?? 0) > blockNumber) return // 大于当前块高，错误的
         state.callResults[chainId][callKey] = {
           data: results[callKey],
           blockNumber
