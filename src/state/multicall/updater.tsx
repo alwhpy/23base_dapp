@@ -97,12 +97,13 @@ export function activeListeningKeys(
     memo[callKey] = Object.keys(keyListeners)
       .filter(key => {
         const blocksPerFetch = parseInt(key)
-        if (blocksPerFetch <= 0) return false
-        return keyListeners[blocksPerFetch] > 0
+        if (blocksPerFetch <= 0) return false // blocksPerFetch key 小于等于0 就不用在查了？
+        return keyListeners[blocksPerFetch] > 0 // blocksPerFetch 大于0 就继续查
       })
       .reduce((previousMin, current) => {
         return Math.min(previousMin, parseInt(current)) //返回最小的blocksPerFetch??
       }, Infinity)
+    console.log('🚀 ~ returnObject.keys ~ memo:', memo, memo[callKey])
     return memo
   }, {})
 }
@@ -137,7 +138,7 @@ export function outdatedListeningKeys(
 
     // already fetching it for a recent enough block, don't refetch it
     // 有块去获取它了？
-    if (data.fetchingBlockNumber && data.fetchingBlockNumber >= minDataBlockNumber) return false
+    if (data.fetchingBlockNumber && data.fetchingBlockNumber >= minDataBlockNumber) return false // 说明正在查找
 
     // if data is older than minDataBlockNumber, fetch it
     // !data.blockNumber： 还没出结果
@@ -159,11 +160,15 @@ function UpdaterChain({ chainId }: { chainId: ChainId }) {
   const listeningKeys: { [callKey: string]: number } = useMemo(() => {
     return activeListeningKeys(debouncedListeners, chainId)
   }, [debouncedListeners, chainId])
-
+  console.log('🚀 ~ constlisteningKeys:{[callKey:string]:number}=useMemo ~ listeningKeys:', listeningKeys)
   const unserializedOutdatedCallKeys = useMemo(() => {
     return outdatedListeningKeys(state.callResults, listeningKeys, chainId, latestBlockNumber)
   }, [chainId, state.callResults, listeningKeys, latestBlockNumber])
-
+  console.log(
+    '🚀 ~ unserializedOutdatedCallKeys ~ unserializedOutdatedCallKeys:',
+    unserializedOutdatedCallKeys,
+    state.callResults
+  )
   const serializedOutdatedCallKeys = useMemo(
     () => JSON.stringify(unserializedOutdatedCallKeys.sort()),
     [unserializedOutdatedCallKeys]
@@ -177,6 +182,7 @@ function UpdaterChain({ chainId }: { chainId: ChainId }) {
     const calls = outdatedCallKeys.map(key => parseCallKey(key))
 
     const chunkedCalls = chunkArray(calls) // 根据任务所需的gas 去分块任务
+    console.log('🚀 ~ useEffect ~ chunkedCalls:', chunkedCalls)
 
     if (cancellations.current && cancellations.current.blockNumber !== latestBlockNumber) {
       cancellations.current.cancellations.forEach(c => c()) // 取消交易查询, 但是条件是什么我不知道??

@@ -45,7 +45,7 @@ export default createReducer(initialState, builder =>
       calls.forEach(call => {
         const callKey = toCallKey(call) // 又转成key
         listeners[chainId][callKey] = listeners[chainId][callKey] ?? {}
-        listeners[chainId][callKey][blocksPerFetch] = (listeners[chainId][callKey][blocksPerFetch] ?? 0) + 1 // 设置成2 ， blocksPerFetch 是用来干嘛的？
+        listeners[chainId][callKey][blocksPerFetch] = (listeners[chainId][callKey][blocksPerFetch] ?? 0) + 1 // 设置成1 ， blocksPerFetch 是用来干嘛的？
       })
       console.log(
         '🚀 ~ .addCase ~ listeners:',
@@ -99,7 +99,7 @@ export default createReducer(initialState, builder =>
         const current = state.callResults[chainId][callKey]
         if (!current) return // only should be dispatched if we are already fetching
         if (current.fetchingBlockNumber === fetchingBlockNumber) {
-          delete current.fetchingBlockNumber
+          delete current.fetchingBlockNumber // 删除fetchingBlockNumber ，以便通过outdatedListeningKeys 继续执行
           current.data = null
           current.blockNumber = fetchingBlockNumber
         }

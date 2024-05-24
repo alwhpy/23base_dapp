@@ -73,6 +73,7 @@ function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions, qu
     const callKeys: string[] = JSON.parse(serializedCallKeys)
     if (!chainId || callKeys.length === 0) return undefined
     const calls = callKeys.map(key => parseCallKey(key)) // 从key中解析成 Call 类型
+    console.log('🚀 ~ useEffect ~ calls:', calls)
     dispatch(
       addMulticallListeners({
         chainId,
@@ -187,6 +188,7 @@ export function useSingleContractMultipleData(
   )
 
   const results = useCallsData(calls, options, chainId)
+  console.log('🚀 ~ calls:', calls)
 
   const latestBlockNumber = useBlockNumber(chainId)
 
